@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  test:
+    image: busybox
+    command: ifconfig
+    networks:
+      app_net:
+        ipv4_address: 172.18.18.9
+
+  app:
+    build: ./python
+    depends_on:
+      - tor
+
+  tor:
+    build:
+      context: ./tor
+    container_name: tor
+    environment:
+      - TOR_INSTANCES=1
+      - TOR_HASHED_PASSWORD=16:D87F66F5B5E2A6BC605544DBB4720DAD433C1E8CE7D18F835D58A4353E
+      - TOR_PROXIES_CONTROLLER_AUTH_PASSWORD=testtor
+      - TOR_CONTROLLER_HOST=172.18.18.10
+    ports:
+      - "9050-9060:9050-9060"
+      - "10000-10050:10000-10050"
+    networks:
+      app_net:
+        ipv4_address: 172.18.18.10
+
+networks:
+  app_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.18.0/24
+          gateway: 172.18.18.1
